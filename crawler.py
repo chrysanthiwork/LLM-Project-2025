@@ -55,3 +55,5 @@ for label, urls in grouped_dict.items():
         if text:
             filename = f"article_{idx}.txt"
             save_text_to_file(text, label_dir, filename)
+
+print("Finished Downloading")
