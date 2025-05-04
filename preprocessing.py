@@ -3,41 +3,54 @@ import re
 import unicodedata
 import requests
 import snowballstemmer
+import enchant
+import nltk
+from nltk.corpus import wordnet
 
+nltk.download('wordnet')
 
-# Συνάρτηση για αφαίρεση τόνων από ελληνικό και αγγλικό κείμενο
+# Εγκατάσταση λεξικού αγγλικής
+english_dict = enchant.Dict("en_US")
+stemmer = snowballstemmer.stemmer('english')
+
+# Συνάρτηση για αφαίρεση τόνων
 def remove_accents(text):
-    # Κανονικοποίηση σε μορφή NFD και αφαίρεση χαρακτήρων τόνων (Mn = Mark, Nonspacing)
     return ''.join(
         char for char in unicodedata.normalize('NFD', text)
         if unicodedata.category(char) != 'Mn'
     )
 
-# Function to read stopwords from a URL into a list
+# Συνάρτηση ανάγνωσης stopwords από URL
 def read_stopwords_from_url(url):
     response = requests.get(url)
     if response.status_code == 200:
-        stopwords = response.text.splitlines()  # Split the response text into lines
-        stopwords = [word.strip() for word in stopwords]  # Remove extra whitespace
-        return stopwords
+        stopwords = response.text.splitlines()
+        return [word.strip() for word in stopwords]
     else:
         print(f"Failed to retrieve the file. Status code: {response.status_code}")
         return []
 
+# Αφαίρεση stopwords από κείμενο
 def remove_stopwords(text, stopwords_list):
-    # Tokenize the text into words
     words = text.split()
-    # Filter out the stopwords
     filtered_words = [word for word in words if word.lower() not in stopwords_list]
-    # Return the filtered text as a string
     return ' '.join(filtered_words)
 
-# First we should load all the articles and save them into a dictionary. The key is the name of the folder (the category)
-# and the items will be all the texts in one list 
+# Έλεγχος εγκυρότητας λέξης (υπάρχει σε λεξικό ή WordNet)
+def is_valid_word(word):
+    word = re.sub(r'\W+', '', word).strip().lower()
+    return english_dict.check(word) or bool(wordnet.synsets(word))
+
+
+# ============ Κύρια Επεξεργασία ============ #
+
 root_folder = 'downloaded_articles'
 
 documents = {}
+texts = []
+vocabulary = set()
 
+# Διαβάζουμε όλα τα αρχεία
 for folder_name in os.listdir(root_folder):
     folder_path = os.path.join(root_folder, folder_name)
     if os.path.isdir(folder_path):
@@ -50,63 +63,48 @@ for folder_name in os.listdir(root_folder):
                     articles.append(content)
         documents[folder_name] = articles
 
-#Σύμφωνα με το 2ο κεφάλαιο, αρχικά θέλουμε να αφήσουμε μόνο τις λέξεις.
-for key, articles in documents.items():
-    cleaned_articles = [
-        re.sub(r'[^a-zA-ZΑ-Ωα-ωΆΈΉΊΌΎΏάέήίόύώ\s]', '', article)
-        for article in articles
-    ]
-    documents[key] = cleaned_articles
+# Διαβάζουμε stopwords
+greek_stopwords = read_stopwords_from_url(
+    'https://raw.githubusercontent.com/stopwords-iso/stopwords-el/refs/heads/master/stopwords-el.txt'
+)
+english_stopwords = read_stopwords_from_url(
+    'https://raw.githubusercontent.com/stopwords-iso/stopwords-en/master/stopwords-en.txt'
+)
 
-#Στην συνέχεια, κάνουμε split και lower όλες τις λέξεις του κειμένου
-# Split και lower κάθε cleaned article
-for key, cleaned in documents.items():
-    documents[key] = [
-        article.lower().split()
-        for article in cleaned
-    ]
-#print(documents.items())
-#print(texts)
-
-greek_stopwords = read_stopwords_from_url('https://raw.githubusercontent.com/stopwords-iso/stopwords-el/refs/heads/master/stopwords-el.txt')
-english_stopwords = read_stopwords_from_url('https://raw.githubusercontent.com/stopwords-iso/stopwords-en/master/stopwords-en.txt')
-
-#print(greek_stopwords)
-#print(english_stopwords)
-
-stemmer = snowballstemmer.stemmer('english')
-
-
+# Επεξεργασία κειμένων
 texts = []
+vocabulary = set()
+doc_labels = []  # 👈 κρατάει την κατηγορία του κάθε text
 
-for articles in documents.values():
+for category, articles in documents.items():  # 👈 χρησιμοποίησε και το category
     for article in articles:
-        # Ένωση λέξεων σε string
-        text = ' '.join(article)
+        article = article.lower()
+        article = re.sub(r'[^a-zA-ZΑ-Ωα-ωΆΈΉΊΌΎΏάέήίόύώ\s]', '', article)
+        article = remove_accents(article)
+        article = remove_stopwords(article, english_stopwords)
 
-        # Αφαίρεση τόνων
-        text = remove_accents(text)
+        words = article.split()
 
-        # Αφαίρεση stopwords
-        text = remove_stopwords(text, english_stopwords)
+        processed_words = []
+        for word in words:
+            word = re.sub(r'\W+', '', word).strip()
+            if is_valid_word(word):
+                stemmed = stemmer.stemWords([word])[0]
+                processed_words.append(stemmed)
+                vocabulary.add(stemmed)
+            else:
+                print(f"Rejected: {word}")
 
-        #TODO 
-        #Αφαιρεση άχρηστων λέξεων από το vocabulary, πριν το stemming
-
-        # Lemmatization/stemming
-        words = text.split()
-        stemmed_words = stemmer.stemWords(words)
-
-        # Τελικό καθαρισμένο string
-        cleaned_text = ' '.join(stemmed_words)
-
-        # Προσθήκη στη λίστα
+        cleaned_text = ' '.join(processed_words)
         texts.append(cleaned_text)
+        doc_labels.append(category)  # 👈 πρόσθεσε την κατηγορία
 
-#print(texts)
 
-vocabulary = set(word for articles in documents.values() for article in articles for word in article)
+# Προβολή αποτελεσμάτων
+'''print("\n--- Καθαρισμένα Κείμενα ---")
+print(texts)
 
-print(vocabulary)
-print(len(vocabulary))
+print("\n--- Μέγεθος Λεξιλογίου ---")
+print(vocabulary)'''
 
+__all__ = ['texts', 'documents', 'doc_labels']

@@ -1,36 +1,18 @@
-from preprocessing import documents,vocabulary
+from preprocessing import texts, doc_labels
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-def bag_of_words_representation(document_tokens, vocabulary):
-    """
-    Converts a document into a binary representation based on the given vocabulary.
-    Parameters:
-        document_tokens (list): The document represented as a list of tokens.
-        vocabulary (set or list): The vocabulary set/list.
-    Returns:
-        dict: A dictionary with vocabulary words as keys and binary values (1 or 0) indicating presence in the document.
-    """
-    bow_rep = {word: 1 if word in document_tokens else 0 for word in vocabulary}
-    bow_rep = {k: bow_rep[k] for k in sorted(bow_rep)}
-    return bow_rep
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(texts)
+vocabulary = vectorizer.get_feature_names_out()
+tfidf_array = tfidf_matrix.toarray()
 
-#Πρώτη αναπαράσταση. Boolean Representation
-#δουλευει, απλα για το test θα δουμε τα 10 πρωτα
+# Φτιάχνουμε σωστά τη mapping: κάθε TF-IDF σε κάθε άρθρο
+tfidf_representation_stemmed = {}
+for label, tfidf in zip(doc_labels, tfidf_array):
+    if label not in tfidf_representation_stemmed:
+        tfidf_representation_stemmed[label] = []
+    tfidf_representation_stemmed[label].append(dict(zip(vocabulary, tfidf)))
 
-'''bow_documents = {}
-for key, article_lists in documents.items():
-    bow_documents[key] = [
-        bag_of_words_representation(article, vocabulary)
-        for article in article_lists
-    ]'''
-
-#test function bow
-bow_documents = {}
-for i, (key, article_lists) in enumerate(documents.items()):
-    if i >= 1:
-        break
-    bow_documents[key] = [
-        bag_of_words_representation(article, vocabulary)
-        for article in article_lists
-    ]
-
-print(bow_documents)
+# Τώρα tfidf_representation_stemmed περιέχει:
+# { 'sports': [άρθρο1, άρθρο2, ...], 'health': [...], ... }
+#print(tfidf_representation_stemmed['_Alita__opening_weekend'])
