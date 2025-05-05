@@ -1,6 +1,11 @@
 import numpy as np
 import math
 from representation import tfidf_representation_stemmed
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# ============ COSINE SIMILARITY ============ #
 
 def cosine_similarity(doc1, doc2):
     """
@@ -50,9 +55,6 @@ def compute_pairwise_similarities(documents):
 similarity_matrix = compute_pairwise_similarities(tfidf_representation_stemmed) #γίνεται υπολογισμός όλα με όλα πχ _Alita0 vs _Alita1 κλπ.
 #print(similarity_matrix)
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
 
 def plot_similarity_heatmap(similarity_matrix):
     """
@@ -74,4 +76,4 @@ def plot_similarity_heatmap(similarity_matrix):
     # Εμφανίζουμε το γράφημα
     plt.show()
 
-plot_similarity_heatmap(similarity_matrix)
+#plot_similarity_heatmap(similarity_matrix)
