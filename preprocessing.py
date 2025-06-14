@@ -75,9 +75,9 @@ english_stopwords = read_stopwords_from_url(
 texts = []
 texts_untouched = []
 vocabulary = set()
-doc_labels = []  # 👈 κρατάει την κατηγορία του κάθε text
+doc_labels = []  # κρατάει την κατηγορία του κάθε text
 
-for category, articles in documents.items():  # 👈 χρησιμοποίησε και το category
+for category, articles in documents.items(): 
     for article in articles:
         article = article.lower()
         article = re.sub(r'[^a-zA-ZΑ-Ωα-ωΆΈΉΊΌΎΏάέήίόύώ\s]', '', article)
@@ -98,7 +98,7 @@ for category, articles in documents.items():  # 👈 χρησιμοποίησε 
 
         cleaned_text = ' '.join(processed_words)
         texts.append(cleaned_text)
-        doc_labels.append(category)  # 👈 πρόσθεσε την κατηγορία
+        doc_labels.append(category)  
 
 print(texts_untouched)
 # Προβολή αποτελεσμάτων

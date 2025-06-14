@@ -47,7 +47,7 @@ def extract_text_from_url(url):
         return clean_text if clean_text.strip() else None
 
     except Exception as e:
-        print(f"❌ Σφάλμα στο URL: {url}\nΛεπτομέρειες: {e}")
+        print(f" Σφάλμα στο URL: {url}\nΛεπτομέρειες: {e}")
         return None
 
 
@@ -56,18 +56,18 @@ def save_text_to_file(text, directory, filename):
     filepath = os.path.join(directory, filename)
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(text)
-    print(f"✅ Αποθηκεύτηκε: {filepath}")
+    print(f" Αποθηκεύτηκε: {filepath}")
 
 # === EXECUTION ===
 
 base_dir = "downloaded_articles"
 
 for label, urls in grouped_dict.items():
-    print(f"\n🔍 Επεξεργασία κατηγορίας: {label}")
+    print(f"\n Επεξεργασία κατηγορίας: {label}")
     label_dir = os.path.join(base_dir, sanitize_filename(label))
     
     for idx, url in enumerate(urls, start=1):
-        print(f"➡️ ({idx}) {url}")
+        print(f" ({idx}) {url}")
         text = extract_text_from_url(url)
         if text:
             filename = f"article_{idx}.txt"

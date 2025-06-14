@@ -8,3 +8,5 @@ seaborn
 bs4
 pandas
 numpy
+sklearn
+scipy
