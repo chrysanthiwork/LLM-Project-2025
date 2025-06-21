@@ -1,4 +1,3 @@
-unicodedata
 requests
 snowballstemmer
 pyenchant
@@ -8,5 +7,4 @@ seaborn
 bs4
 pandas
 numpy
-sklearn
 scipy
