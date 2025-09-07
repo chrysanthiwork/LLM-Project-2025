@@ -73,7 +73,7 @@ english_stopwords = read_stopwords_from_url(
 
 # Επεξεργασία κειμένων
 texts = []
-texts_untouched = []
+texts_touched = []
 vocabulary = set()
 doc_labels = []  # κρατάει την κατηγορία του κάθε text
 
@@ -83,7 +83,7 @@ for category, articles in documents.items():
         article = re.sub(r'[^a-zA-ZΑ-Ωα-ωΆΈΉΊΌΎΏάέήίόύώ\s]', '', article)
         article = remove_accents(article)
         article = remove_stopwords(article, english_stopwords)
-        texts_untouched.append(article)
+        texts_touched.append(article)
         words = article.split()
 
         processed_words = []
@@ -100,7 +100,7 @@ for category, articles in documents.items():
         texts.append(cleaned_text)
         doc_labels.append(category)  
 
-print(texts_untouched)
+print(texts_touched)
 # Προβολή αποτελεσμάτων
 '''print("\n--- Καθαρισμένα Κείμενα ---")
 print(texts)

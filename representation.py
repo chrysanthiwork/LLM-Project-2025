@@ -1,4 +1,4 @@
-from preprocessing import texts, doc_labels, texts_untouched
+from preprocessing import texts, doc_labels, texts_touched
 from sklearn.feature_extraction.text import TfidfVectorizer
 from preprocessing import texts, doc_labels
 from sklearn.feature_extraction.text import CountVectorizer
@@ -13,7 +13,7 @@ tfidf_matrix = vectorizer.fit_transform(texts)
 vocabulary = vectorizer.get_feature_names_out() #κάνει όλο το preprocessing αυτόματα για το vocabulary
 tfidf_array = tfidf_matrix.toarray()
 
-'''# Φτιάχνουμε σωστά τη mapping: κάθε TF-IDF σε κάθε άρθρο
+# Φτιάχνουμε σωστά τη mapping: κάθε TF-IDF σε κάθε άρθρο
 tfidf_representation_stemmed = {}
 label_counts = {}
 
@@ -63,7 +63,7 @@ for i, cat in enumerate(categories):
 # Πληροφορίες για επιβεβαίωση
 #print("3D Boolean array shape:", boolean_3d_array.shape)
 for i, cat in enumerate(categories):
-    print(f"{cat}: {len(category_to_vectors[cat])} documents")'''
+    print(f"{cat}: {len(category_to_vectors[cat])} documents")
 
 #print(boolean_3d_array)
 
@@ -74,7 +74,7 @@ for i, cat in enumerate(categories):
 
 # ============ Singular Value Decomposition ============ #
 vectorizer_svd = CountVectorizer()
-doc_term_matrix = vectorizer_svd.fit_transform(texts_untouched).toarray()
+doc_term_matrix = vectorizer_svd.fit_transform(texts_touched).toarray()
 vocab = vectorizer_svd.get_feature_names_out() #without stem , untouched texts 
 #print("Document-Term Matrix (A):") 
 #print(doc_term_matrix)
