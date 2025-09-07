@@ -25,7 +25,7 @@ df_sampled = df[df['label'].isin(sampled_labels)].groupby('label').head(4)
 df_sampled.to_json("cluster_sample.json", orient="records", indent=2)
 
 
-print(f"✅ Done! Sampled {len(df_sampled)} articles from {len(sampled_labels)} clusters.")
+print(f" Done! Sampled {len(df_sampled)} articles from {len(sampled_labels)} clusters.")
 
 # Φόρτωσε το JSON
 df = pd.read_json('cluster_sample.json')

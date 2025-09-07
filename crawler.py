@@ -24,34 +24,53 @@ def extract_text_from_url(url):
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
-        article = soup.find('article') or soup.find('main') or soup.find('body')
-        if article:
-            text = article.get_text(separator='\n', strip=True)
-        else:
-            text = soup.get_text(separator='\n', strip=True)
-        return text
+
+        # Αφαίρεση scripts, styles, meta, nav, footer κλπ
+        for tag in soup(["script", "style", "meta", "nav", "footer", "noscript", "aside", "form", "iframe"]):
+            tag.decompose()
+
+        # Εστίαση στο κύριο περιεχόμενο: article, main, section, ή body
+        candidates = soup.find_all(['article', 'main', 'section'])
+        if not candidates:
+            candidates = [soup.body] if soup.body else []
+
+        # Μαζεύουμε το σημαντικό κείμενο
+        text_parts = []
+        for tag in candidates:
+            paragraphs = tag.find_all(['p', 'h1', 'h2', 'h3', 'li'])  # μόνο λογικά block περιεχομένου
+            for p in paragraphs:
+                content = p.get_text(separator=' ', strip=True)
+                if len(content.split()) > 5:  # Απόρριψη πολύ μικρών στοιχείων (π.χ. "ok", "read more")
+                    text_parts.append(content)
+
+        clean_text = '\n'.join(text_parts)
+        return clean_text if clean_text.strip() else None
+
     except Exception as e:
-        print(f"❌ Σφάλμα στο URL: {url}\nΛεπτομέρειες: {e}")
+        print(f" Σφάλμα στο URL: {url}\nΛεπτομέρειες: {e}")
         return None
+
 
 def save_text_to_file(text, directory, filename):
     os.makedirs(directory, exist_ok=True)
     filepath = os.path.join(directory, filename)
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(text)
-    print(f"✅ Αποθηκεύτηκε: {filepath}")
+    print(f" Αποθηκεύτηκε: {filepath}")
 
 # === EXECUTION ===
 
 base_dir = "downloaded_articles"
 
 for label, urls in grouped_dict.items():
-    print(f"\n🔍 Επεξεργασία κατηγορίας: {label}")
+    print(f"\n Επεξεργασία κατηγορίας: {label}")
     label_dir = os.path.join(base_dir, sanitize_filename(label))
     
     for idx, url in enumerate(urls, start=1):
-        print(f"➡️ ({idx}) {url}")
+        print(f" ({idx}) {url}")
         text = extract_text_from_url(url)
         if text:
             filename = f"article_{idx}.txt"
             save_text_to_file(text, label_dir, filename)
+
+print("Finished Downloading")

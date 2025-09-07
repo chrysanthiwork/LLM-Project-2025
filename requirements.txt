@@ -1,0 +1,10 @@
+requests
+snowballstemmer
+pyenchant
+nltk
+scikit-learn
+seaborn
+bs4
+pandas
+numpy
+scipy
