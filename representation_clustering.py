@@ -3,29 +3,38 @@ from sklearn.cluster import KMeans
 from preprocessing import texts, doc_labels, texts_touched
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import StandardScaler
-
+from representation import tfidf_representation_stemmed
+from similarities import cosine_similarity
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def kmeans_clusters(input_data, n_clusters, max_iter):
-    #X = tfidf_representation_stemmed
-    X = input_data
-    kmeans = KMeans(n_clusters=n_clusters, n_init="auto", max_iter = max_iter).fit(X)
+def kmeans_clusters(n_clusters, max_iter):
+
+    scaler = StandardScaler(n_clusters, max_iter)
+    X_scaled = scaler.fit_transform(doc_concept_vectors)
+
+    # KMeans
+    n_clusters = n_clusters
+    max_iter = max_iter
+    kmeans = KMeans(n_clusters=n_clusters, n_init='auto', max_iter=max_iter, random_state=42)
+    kmeans.fit(X_scaled)
     labels = kmeans.labels_
-    for idx, label in enumerate(labels):
-        print("Article : " + str(idx+1) + " in cluster: " + str(label))
 
-    # Apply t-SNE for dimensionality reduction
-    tsne = TSNE(perplexity= 7, n_components=2, random_state=42)
-    X_tsne = tsne.fit_transform(X)
+    # Εκτύπωση clusters
+    docs = list(tfidf_representation_stemmed.keys())
+    for idx, cluster_label in enumerate(labels):
+        print(f"Article {idx+1} ({docs[idx]}) in cluster: {cluster_label}")
 
-    # Plotting the clusters
+    # t-SNE για οπτικοποίηση
+    tsne = TSNE(perplexity=7, n_components=2, random_state=42)
+    X_tsne = tsne.fit_transform(X_scaled)
+
     plt.figure(figsize=(8, 6))
     plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=labels, cmap='viridis', marker='o')
     plt.title('t-SNE Visualization of Clusters')
-    plt.show() 
+    plt.show()
 
 '''
 # ============ TF-IDF REPRESENTATION ============ #
@@ -321,9 +330,10 @@ print("--- ΒΗΜΑ Β: Κανονικοποίηση Διανυσμάτων (Sta
 print("Πριν την κανονικοποίηση, οι στήλες έχουν διαφορετικές κλίμακες (τυπ. αποκλίσεις):")
 print(np.std(doc_concept_vectors, axis=0).round(2))
 
-scaler = StandardScaler()
-doc_vectors_normalized = scaler.fit_transform(doc_concept_vectors)
-kmeans_clusters(doc_vectors_normalized, 5, 4)
+n_clusters = 5
+max_iter = 200
+kmeans_clusters(n_clusters, max_iter)
+
 
 
 
